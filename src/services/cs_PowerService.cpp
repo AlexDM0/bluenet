@@ -94,12 +94,12 @@ void PowerService::tick() {
 		_currentLimitInitialized = true;
 	}
 
-	if (!_adcInitialized) {
-		// Init only when you sample, so that the the pin is only configured as AIN after the big spike at startup.
-		ADC::getInstance().init(PIN_AIN_ADC);
-		sampleCurrentInit();
-		_adcInitialized = true;
-	}
+//	if (!_adcInitialized) {
+//		// Init only when you sample, so that the the pin is only configured as AIN after the big spike at startup.
+//		ADC::getInstance().init(PIN_AIN_ADC);
+//		sampleCurrentInit();
+//		_adcInitialized = true;
+//	}
 
 	if (_samplingType && _currentCurve->isFull()) {
 		sampleCurrent(_samplingType);
@@ -140,9 +140,11 @@ void PowerService::addPWMCharacteristic() {
 	_pwmCharacteristic->setDefaultValue(255);
 	_pwmCharacteristic->setWritable(true);
 	_pwmCharacteristic->onWrite([&](const uint8_t& value) -> void {
-		//			LOGi("set pwm to %i", value);
-		PWM::getInstance().setValue(0, value);
-	});
+//			LOGi("set pwm to %i", value);
+			if (value == 0 || value == 255) {
+				PWM::getInstance().setValue(0, value);
+			}
+		});
 }
 
 // Do we really want to use the PWM for this, or just set the pin to zero?
@@ -190,10 +192,31 @@ void PowerService::addSampleCurrentCharacteristic() {
 		}
 
 		// Start storing the samples
+		_lastPin = true;
 		_currentCurve->clear();
 		ADC::getInstance().setCurrentCurve(_currentCurve);
 
-		_samplingType = value;
+		ADC::getInstance().init(PIN_AIN_ADC);
+		ADC::getInstance().start();
+		while (!_currentCurve->isFull()) {
+			while(!NRF_ADC->EVENTS_END) {}
+//			NRF_ADC->EVENTS_END	= 0;
+//			LOGd("got sample");
+			_currentCurve->add(NRF_ADC->RESULT, RTC::getCount());
+			if (_lastPin) {
+				ADC::getInstance().config(PIN_AIN_LPCOMP_REF);
+//				ADC::getInstance().config(PIN_AIN_ADC);
+			} else {
+//				ADC::getInstance().config(PIN_AIN_LPCOMP_REF);
+				ADC::getInstance().config(PIN_AIN_ADC);
+			}
+			_lastPin = !_lastPin;
+			ADC::getInstance().start();
+		}
+		sampleCurrent(value);
+		_samplingType = 0;
+
+//		_samplingType = value;
 	});
 }
 

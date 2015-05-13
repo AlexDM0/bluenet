@@ -194,6 +194,7 @@ void Crownstone::configStack() {
 	_stack->setConnectionSupervisionTimeout(400);
 	_stack->setSlaveLatency(10);
 	_stack->setAdvertisingInterval(80);
+//	_stack->setAdvertisingInterval(0x0020);
 	_stack->setAdvertisingTimeoutSeconds(0);
 }
 

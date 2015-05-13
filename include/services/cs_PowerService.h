@@ -114,4 +114,5 @@ private:
 	bool _adcInitialized;
 	bool _currentLimitInitialized;
 	uint8_t _samplingType;
+	bool _lastPin;
 };

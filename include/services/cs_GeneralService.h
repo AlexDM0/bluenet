@@ -20,6 +20,7 @@
 //#include "processing/cs_Temperature.h"
 
 #define GENERAL_SERVICE_UPDATE_FREQUENCY 10 // hz
+//#define GENERAL_SERVICE_UPDATE_FREQUENCY 30 // hz
 
 /* General Service for the Crownstone
  *

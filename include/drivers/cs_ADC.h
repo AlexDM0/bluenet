@@ -71,5 +71,6 @@ private:
 //	uint8_t _threshold;
 	CurrentCurve<uint16_t>* _currentCurve;
 
+public:
 	uint32_t config(uint8_t pin);
 };
