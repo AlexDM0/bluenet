@@ -11,6 +11,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include "util/cs_BleError.h"
 
 #include <ble/cs_Nordic.h>
 #include "cfg/cs_Boards.h"
@@ -34,11 +35,45 @@ void config_uart() {
 	NRF_UART0->PSELTXD = PIN_GPIO_TX;
 
 	//NRF_UART0->CONFIG = NRF_UART0->CONFIG_HWFC_ENABLED; // do not enable hardware flow control.
+	NRF_UART0->PSELRTS = 0xFFFFFFFF;
+	NRF_UART0->PSELCTS = 0xFFFFFFFF;
+
 	NRF_UART0->BAUDRATE = m_baudrates[UART_BAUD_38K4];
+
 	NRF_UART0->TASKS_STARTTX = 1;
 	NRF_UART0->TASKS_STARTRX = 1;
 	NRF_UART0->EVENTS_RXDRDY = 0;
 	NRF_UART0->EVENTS_TXDRDY = 0;
+}
+
+void uart_enable_interrupt() {
+	NRF_UART0->INTENSET = UART_INTENSET_RXDRDY_Msk;
+
+	uint32_t err_code;
+//	NVIC_ClearPendingIRQ(UART0_IRQn);
+//	NVIC_SetPriority(UART0_IRQn, NRF_APP_PRIORITY_LOW);
+//	NVIC_EnableIRQ(UART0_IRQn);
+//	// Enable UART interrupt
+#if(NRF51_USE_SOFTDEVICE == 1)
+	err_code = sd_nvic_ClearPendingIRQ(UART0_IRQn);
+	APP_ERROR_CHECK(err_code);
+#else
+	NVIC_ClearPendingIRQ(UART0_IRQn);
+#endif
+
+#if(NRF51_USE_SOFTDEVICE == 1)
+	err_code = sd_nvic_SetPriority(UART0_IRQn, NRF_APP_PRIORITY_LOW);
+	APP_ERROR_CHECK(err_code);
+#else
+	NVIC_SetPriority(UART0_IRQn, NRF_APP_PRIORITY_LOW);
+#endif
+
+#if(NRF51_USE_SOFTDEVICE == 1)
+	err_code = sd_nvic_EnableIRQ(UART0_IRQn);
+	APP_ERROR_CHECK(err_code);
+#else
+	NVIC_EnableIRQ(UART0_IRQn);
+#endif
 }
 
 /**

@@ -36,6 +36,7 @@
 #include <cs_Crownstone.h>
 
 #include "cfg/cs_Boards.h"
+#include "drivers/cs_Serial.h"
 #include "drivers/cs_RTC.h"
 #include "drivers/cs_PWM.h"
 #include "util/cs_Utils.h"
@@ -257,6 +258,9 @@ void Crownstone::setup() {
 	// in particular we need it to set interrupt priorities.
 	_stack->init();
 
+	// enable the interrupt after the softdevice boot
+	uart_enable_interrupt();
+
 #if IBEACON==1
 	// if enabled, create the iBeacon parameter object which will be used
 	// to start advertisement as an iBeacon
@@ -369,14 +373,13 @@ void Crownstone::setup() {
 
 }
 
-void Crownstone::run() {
 
+void Crownstone::run() {
 	_stack->startTicking();
 
 #if (BOARD==CROWNSTONE_SENSOR)
 		_sensors->startTicking();
 #endif
-
 	while(1) {
 
 		app_sched_execute();
@@ -384,11 +387,13 @@ void Crownstone::run() {
 #if(NORDIC_SDK_VERSION > 5)
 	BLE_CALL(sd_app_evt_wait, ());
 #else
-	BLE_CALL(sd_app_event_wait, () );
+	BLE_CALL(sd_app_event_wait, ());
 #endif
 
 	}
 }
+
+
 
 void Crownstone::handleEvent(uint16_t evt, void* p_data, uint16_t length) {
 
@@ -431,6 +436,8 @@ void Crownstone::handleEvent(uint16_t evt, void* p_data, uint16_t length) {
 void on_exit(void) {
 	LOGf("PROGRAM TERMINATED");
 }
+
+
 
 /**********************************************************************************************************************
  * The main function. Note that this is not the first function called! For starters, if there is a bootloader present,

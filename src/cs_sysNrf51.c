@@ -25,6 +25,7 @@ extern unsigned const long _estack;
 extern int main (void);
 
 void ADC_IRQHandler(void);
+void UART0_IRQHandler(void);
 void ResetHandler(void);
 
 // currently used for PWM
@@ -47,7 +48,7 @@ void PendSV_Handler(void)	__attribute__ ((weak, alias("unused_isr")));
 void SysTick_Handler(void)	__attribute__ ((weak, alias("unused_isr")));
 void POWER_CLOCK_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
 void RADIO_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
-void UART0_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
+//void UART0_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
 void SPI0_TWI0_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
 void SPI1_TWI1_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
 void GPIOTE_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
