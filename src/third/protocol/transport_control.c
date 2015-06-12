@@ -80,13 +80,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define RADIO_SAFETY_TIMING_US      (500)
 //#define RSSI_ENABLE
 
-//static uint8_t radio_rssi;
+static uint8_t radio_rssi;
 static uint8_t tx_data[(PACKET_DATA_MAX_LEN + PACKET_DATA_POS) * PACKET_MAX_CHAIN_LEN];
 static uint64_t global_time = 0;
 static uint8_t step_timer_index = 0xFF;
 
 static void search_callback(uint8_t* data);
 static void trickle_step_callback(void);
+
+uint8_t get_stored_rssi() {
+	return radio_rssi;
+}
 
 /**
 * @brief Order the radio_control module to do a RX, and report back to
@@ -158,7 +162,7 @@ static void search_callback(uint8_t* data)
 
 //#ifdef RSSI_ENABLE
 //    // By having the RSSI here, we almost always get a value, if we put it down below, we hardly ever get one. Radio closed there?
-//    radio_rssi = radio_rssi_get();
+    radio_rssi = radio_rssi_get();
 ////    LOGi("RSSI value: %i", radio_rssi); // I think having a log in this function leads to messed up timings, resulting in a softdevice assertion error breakpoint.
 //#endif
 

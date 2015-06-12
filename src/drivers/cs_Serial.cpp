@@ -17,10 +17,6 @@
 #include "cfg/cs_Boards.h"
 //#include "ble/cs_nRF51822.h"
 
-#define NRF_UART_1200_BAUD  0x0004F000UL
-#define NRF_UART_9600_BAUD  0x00275000UL
-#define NRF_UART_38400_BAUD 0x009D5000UL
-
 static const uint32_t m_baudrates[UART_BAUD_TABLE_MAX_SIZE] = UART_BAUDRATE_DEVISORS_ARRAY;
 
 /**
@@ -38,7 +34,7 @@ void config_uart() {
 	NRF_UART0->PSELRTS = 0xFFFFFFFF;
 	NRF_UART0->PSELCTS = 0xFFFFFFFF;
 
-	NRF_UART0->BAUDRATE = m_baudrates[UART_BAUD_38K4];
+	NRF_UART0->BAUDRATE = m_baudrates[UART_BAUD_9K6];
 
 	NRF_UART0->TASKS_STARTTX = 1;
 	NRF_UART0->TASKS_STARTRX = 1;
@@ -62,10 +58,10 @@ void uart_enable_interrupt() {
 #endif
 
 #if(NRF51_USE_SOFTDEVICE == 1)
-	err_code = sd_nvic_SetPriority(UART0_IRQn, NRF_APP_PRIORITY_LOW);
+	err_code = sd_nvic_SetPriority(UART0_IRQn, NRF_APP_PRIORITY_HIGH);
 	APP_ERROR_CHECK(err_code);
 #else
-	NVIC_SetPriority(UART0_IRQn, NRF_APP_PRIORITY_LOW);
+	NVIC_SetPriority(UART0_IRQn, NRF_APP_PRIORITY_HIGH);
 #endif
 
 #if(NRF51_USE_SOFTDEVICE == 1)

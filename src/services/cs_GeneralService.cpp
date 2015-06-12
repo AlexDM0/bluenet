@@ -130,12 +130,20 @@ void GeneralService::init() {
 
 void GeneralService::tick() {
 //	LOGi("Tick: %d", RTC::now());
-
+#if CHAR_MESHING==1
 	UartBuffer & buff = UartBuffer::getInstance();
 	if (buff.bufferLoaded() == true) {
 		CMesh & mesh = CMesh::getInstance();
-		LOGi("buffer loaded %d %d %d %d %d", buff.uart_buffer[0], buff.uart_buffer[1], buff.uart_buffer[2], buff.uart_buffer[3], buff.uart_buffer[4]);
+
+		if (buff.uart_buffer[0] == 50) { // 2
+			mesh.send(2,buff.uart_buffer,(uint8_t) MAX_MESH_MESSAGE_LEN);
+		}
+		else {
+			mesh.send(1,buff.uart_buffer,(uint8_t) MAX_MESH_MESSAGE_LEN);
+		}
+		buff.clear();
 	}
+#endif
 
 	if (_temperatureCharacteristic) {
 		int32_t temp;
