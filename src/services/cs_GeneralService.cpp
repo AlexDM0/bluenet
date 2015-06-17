@@ -18,6 +18,8 @@
 //
 #if CHAR_MESHING==1
 #include <protocol/cs_MeshControl.h>
+#include <protocol/cs_Mesh.h>
+#include <protocol/cs_uartMeshForward.h>
 #endif
 
 #include <cfg/cs_Settings.h>
@@ -128,6 +130,20 @@ void GeneralService::init() {
 
 void GeneralService::tick() {
 //	LOGi("Tick: %d", RTC::now());
+#if CHAR_MESHING==1
+	UartBuffer & buff = UartBuffer::getInstance();
+	if (buff.bufferLoaded() == true) {
+		CMesh & mesh = CMesh::getInstance();
+
+		if (buff.uart_buffer[0] == 50) { // 2
+			mesh.send(2,buff.uart_buffer,(uint8_t) MAX_MESH_MESSAGE_LEN);
+		}
+		else {
+			mesh.send(1,buff.uart_buffer,(uint8_t) MAX_MESH_MESSAGE_LEN);
+		}
+		buff.clear();
+	}
+#endif
 
 	if (_temperatureCharacteristic) {
 		int32_t temp;

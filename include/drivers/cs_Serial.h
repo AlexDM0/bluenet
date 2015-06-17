@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -100,6 +102,12 @@ typedef enum
  * bits, etc.
  */
 void config_uart();
+
+void uart_enable_interrupt();
+
+void write_uart(const char *str);
+uint8_t read_uart();
+
 
 /**
  * Write a string to the serial connection. Make sure you end with `\n` if you want to have new lines in the output.

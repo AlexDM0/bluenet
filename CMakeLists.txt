@@ -8,6 +8,8 @@
 # Copyright © 2013 Anne C. van Rossum <anne@dobots.nl>
 #######################################################################################################################
 
+
+
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 IF(COMMAND cmake_policy)
@@ -102,6 +104,7 @@ LIST(APPEND FOLDER_SOURCE "${SOURCE_DIR}/events/cs_EventDispatcher.cpp")
 IF(${GENERAL_SERVICE} STRGREATER "0")
 	IF(${CHAR_MESHING} STRGREATER "0")
 		LIST(APPEND FOLDER_SOURCE "${SOURCE_DIR}/protocol/cs_MeshControl.cpp")
+		LIST(APPEND FOLDER_SOURCE "${SOURCE_DIR}/protocol/cs_uartMeshForward.cpp")
 	ENDIF()
 ENDIF()
 #LIST(APPEND FOLDER_SOURCE "${SOURCE_DIR}/cs_BluetoothLE.cpp")

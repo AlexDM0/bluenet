@@ -94,6 +94,8 @@ void radio_disable(void);
 */
 void radio_event_handler(void);
 
+void radio_rssi_enable(void);
 
+uint8_t radio_rssi_get (void);
 
 #endif /* _RADIO_CONTROL_H__*/

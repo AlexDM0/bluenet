@@ -33,7 +33,7 @@ extern "C" void decode_data_message(void* p_event_data, uint16_t event_size) {
  * Get incoming messages and perform certain actions.
  */
 void MeshControl::process(uint8_t handle, void* p_data, uint16_t length) {
-	LOGi("Process incoming mesh message");
+//	LOGi("Process incoming mesh message");
 	switch(handle) {
 	case HUB_CHANNEL: {
 

@@ -14,9 +14,11 @@
 #include <drivers/cs_Serial.h>
 #include <protocol/cs_MeshControl.h>
 #include <protocol/cs_MeshMessageTypes.h>
+#include <protocol/cs_uartMeshForward.h>
 #include <util/cs_BleError.h>
 
 #include <util/cs_Utils.h>
+#include <third/protocol/transport_control.h>
 
 extern "C" {
 //#include <protocol/led_config.h>
@@ -26,7 +28,7 @@ extern "C" {
  */
 void rbc_mesh_event_handler(rbc_mesh_event_t* evt)
 {
-	TICK_PIN(28);
+	//TICK_PIN(28);
 	//nrf_gpio_gitpin_toggle(PIN_GPIO_LED1);
 
 	switch (evt->event_type)
@@ -54,8 +56,16 @@ void rbc_mesh_event_handler(rbc_mesh_event_t* evt)
             if (evt->value_handle > 2)
                 break;
 
+            evt->data[MAX_MESH_MESSAGE_LEN + 1] = 0;  // this is an end of line char
+
+            write("RSSI:%i\n", get_stored_rssi());
+
+            write("MESH:");
+            write((char*)evt->data);
+            write("\n");
             //if (evt->data[0]) {
-            LOGi("Got data ch: %i, val: %i, len: %d, orig_addr:", evt->value_handle, evt->data[0], evt->data_len);
+
+//            LOGi("Got data ch: %i, val: %i, len: %d, orig_addr:", evt->value_handle, evt->data[0], evt->data_len);
 //            BLEutil::printArray(evt->originator_address.addr, 6);
             MeshControl &meshControl = MeshControl::getInstance();
             meshControl.process(evt->value_handle, evt->data, evt->data_len);
@@ -84,7 +94,7 @@ CMesh::~CMesh() {
  */
 void CMesh::init() {
 	LOGi("For now we are testing the meshing functionality.");
-	nrf_gpio_pin_clear(PIN_GPIO_LED0);
+	//nrf_gpio_pin_clear(PIN_GPIO_LED0);
 
 	rbc_mesh_init_params_t init_params;
 
