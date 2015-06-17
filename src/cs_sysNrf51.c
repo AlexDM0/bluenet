@@ -25,7 +25,6 @@ extern unsigned const long _estack;
 extern int main (void);
 
 void ADC_IRQHandler(void);
-void UART0_IRQHandler(void);
 void ResetHandler(void);
 
 // currently used for PWM
@@ -35,6 +34,12 @@ void TIMER2_IRQHandler(void);
 void WUCOMP_COMP_IRQHandler(void);
 
 void RTC1_IRQHandler(void);
+
+#if CHAR_MESHING==1
+void UART0_IRQHandler(void);
+#else
+void UART0_IRQHandler(void)	__attribute__ ((weak, alias("unused_isr")));
+#endif
 
 void unused_isr(void)
 {
