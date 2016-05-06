@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include "drivers/cs_Serial.h"
 
 /** Circular Buffer implementation
  * @param T Element type of elements within the buffer.
@@ -36,6 +37,7 @@ public:
 		if (initialize) {
 			init();
 		}
+//		LOGd("Initialized: arr=%u cap=%u head=%u tail=%u size=%u", _array, _capacity, _head, _tail, _contentsSize);
 	}
 
 	/** Default destructor
@@ -123,6 +125,7 @@ public:
 	T pop() {
 		T res = peek();
 		incHead();
+//		LOGd("Popped: head=%u tail=%u size=%u", _head, _tail, _contentsSize);
 		return res;
 	}
 
@@ -135,11 +138,13 @@ public:
 	 * the oldest element will be overwritten.
 	 */
 	void push(T value) {
+//		LOGd("Push: arr=%u cap=%u head=%u tail=%u size=%u", _array, _capacity, _head, _tail, _contentsSize);
 		incTail();
 		if (_contentsSize > _capacity) {
 			incHead();
 		}
 		_array[_tail] = value;
+//		LOGd("Pushed: head=%u tail=%u size=%u", _head, _tail, _contentsSize);
 	}
 
 	/** Clears the buffer
@@ -187,6 +192,7 @@ private:
 		++_tail;
 		_tail %= _capacity;
 		++_contentsSize;
+//		LOGd("incTail: arr=%u cap=%u head=%u tail=%u size=%u", _array, _capacity, _head, _tail, _contentsSize);
 	}
 
 	/** Increases the head.
@@ -198,6 +204,7 @@ private:
 		++_head;
 		_head %= _capacity;
 		--_contentsSize;
+//		LOGd("incHead: arr=%u cap=%u head=%u tail=%u size=%u", _array, _capacity, _head, _tail, _contentsSize);
 	}
 
 };

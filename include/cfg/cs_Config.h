@@ -65,3 +65,6 @@
 
 //! Max number of schedule entries in the schedule service.
 #define MAX_SCHEDULE_ENTRIES                     10
+
+//! Max number of pins to sample.
+#define MAX_ADC_PINS                             2

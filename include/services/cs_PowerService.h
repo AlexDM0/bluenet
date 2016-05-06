@@ -20,6 +20,7 @@
 //#include "drivers/cs_ADC.h"
 #include "drivers/cs_LPComp.h"
 //#include "drivers/cs_RTC.h"
+#include "structs/cs_PowerNotification.h"
 
 #define POWER_SERVICE_UPDATE_FREQUENCY 10 //! hz
 
@@ -124,6 +125,8 @@ private:
 //	ps_power_service_t _storageStruct;
 
 	app_timer_id_t _staticSamplingTimer;
+
+	power_notification_t _powerNotification;
 
 	bool _adcInitialized;
 	bool _currentLimitInitialized;

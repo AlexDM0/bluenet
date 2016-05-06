@@ -14,7 +14,7 @@
 //#include "nrf_sdm.h"
 //#endif
 //
-//#include "common/cs_Boards.h"
+#include "cfg/cs_Boards.h"
 #include "drivers/cs_Serial.h"
 #include "util/cs_BleError.h"
 //
@@ -23,17 +23,19 @@
 #include "drivers/cs_RTC.h"
 
 //! Check the section 31 "Analog to Digital Converter (ADC)" in the nRF51 Series Reference Manual.
-uint32_t ADC::init(uint8_t pin) {
-#if(NRF51_USE_SOFTDEVICE == 1)
-	LOGd("Run ADC converter with SoftDevice");
-#else
-	LOGd("Run ADC converter without SoftDevice!!!");
-
-#endif
+uint32_t ADC::init(uint8_t pins[], uint8_t size) {
 	uint32_t err_code;
+	assert(size <= MAX_ADC_PINS && size > 0, "Too many or few pins");
+	for (uint8_t i=0; i<size; i++) {
+		_pins[i] = pins[i];
+	}
+	_numPins = size;
 
-	LOGd("Configure ADC on pin %u", pin);
-	err_code = config(pin);
+	CircularBuffer<uint16_t>* buffer = new CircularBuffer<uint16_t>(400, true);
+	ADC::getInstance().setBuffer(buffer);
+
+	LOGd("Configure ADC on pin %u", _pins[0]);
+	err_code = config(_pins[0]);
 	APP_ERROR_CHECK(err_code);
 
 	NRF_ADC->EVENTS_END  = 0;    //! Stop any running conversions.
@@ -41,29 +43,24 @@ uint32_t ADC::init(uint8_t pin) {
 
 	NRF_ADC->INTENSET   = ADC_INTENSET_END_Msk; //! Interrupt adc
 
-//	//! Enable ADC interrupt
-//#if(NRF51_USE_SOFTDEVICE == 1)
-//	err_code = sd_nvic_ClearPendingIRQ(ADC_IRQn);
-//	APP_ERROR_CHECK(err_code);
-//#else
-//	NVIC_ClearPendingIRQ(ADC_IRQn);
-//#endif
-//
-//#if(NRF51_USE_SOFTDEVICE == 1)
-//	err_code = sd_nvic_SetPriority(ADC_IRQn, NRF_APP_PRIORITY_LOW);
-//	APP_ERROR_CHECK(err_code);
-//#else
-//	NVIC_SetPriority(ADC_IRQn, NRF_APP_PRIORITY_LOW);
-//#endif
-//
-//#if(NRF51_USE_SOFTDEVICE == 1)
-//	err_code = sd_nvic_EnableIRQ(ADC_IRQn);
-//	APP_ERROR_CHECK(err_code);
-//#else
-//	NVIC_EnableIRQ(ADC_IRQn);
-//#endif
+	//! Enable ADC interrupt
+#if(NRF51_USE_SOFTDEVICE == 1)
+	err_code = sd_nvic_ClearPendingIRQ(ADC_IRQn);
+	APP_ERROR_CHECK(err_code);
+	err_code = sd_nvic_SetPriority(ADC_IRQn, NRF_APP_PRIORITY_LOW);
+	APP_ERROR_CHECK(err_code);
+	err_code = sd_nvic_EnableIRQ(ADC_IRQn);
+	APP_ERROR_CHECK(err_code);
+#else
+	NVIC_ClearPendingIRQ(ADC_IRQn);
+	NVIC_SetPriority(ADC_IRQn, NRF_APP_PRIORITY_LOW);
+	NVIC_EnableIRQ(ADC_IRQn);
+#endif
 
-//	_sampleNum = 0;
+	assert(_buffer != NULL, "buffer not initialized");
+
+	_lastSampleTime = 0;
+	_sampleNum = 0;
 	return 0;
 }
 
@@ -75,7 +72,7 @@ uint32_t ADC::init(uint8_t pin) {
  *   - do not set the prescaler for the reference voltage, this means voltage is expected between 0 and 1.2V (VGB)
  * The prescaler for input is set to 1/3. This means that the AIN input can be from 0 to 3.6V.
  */
-uint32_t ADC::config(uint8_t pin) {
+uint32_t ADC::config(uint8_t pinNum) {
 	NRF_ADC->CONFIG     =
 			(ADC_CONFIG_RES_10bit                            << ADC_CONFIG_RES_Pos)     |
 #if(HARDWARE_BOARD==CROWNSTONE)
@@ -85,12 +82,10 @@ uint32_t ADC::config(uint8_t pin) {
 #endif
 			(ADC_CONFIG_REFSEL_VBG                           << ADC_CONFIG_REFSEL_Pos)  |
 			(ADC_CONFIG_EXTREFSEL_None                       << ADC_CONFIG_EXTREFSEL_Pos);
-	if (pin < 8) {
-		NRF_ADC->CONFIG |= ADC_CONFIG_PSEL_AnalogInput0 << (pin+ADC_CONFIG_PSEL_Pos);
-	} else {
-		LOGf("There is no such pin available");
-		return 0xFFFFFFFF; //! error
-	}
+
+	assert(_pins[pinNum] < 8, "no such pin");
+	NRF_ADC->CONFIG |= ADC_CONFIG_PSEL_AnalogInput0 << (_pins[pinNum]+ADC_CONFIG_PSEL_Pos);
+	_lastPinNum = pinNum;
 	return 0;
 }
 
@@ -112,6 +107,24 @@ void ADC::update(uint32_t value) {
 ////			_currentCurve->add(value);
 ////		}
 //	}
+
+//	_buffer->push(value);
+//	_sampleNum++;
+	uint32_t time = RTC::getCount();
+//	if (_sampleNum >= 10000) {
+//	if (RTC::ticksToMs(RTC::difference(time, _lastSampleTime)) >= 1000) {
+	uint32_t diff = RTC::difference(time, _lastSampleTime);
+	if (diff >= RTC::msToTicks(10)) {
+//		LOGi("1000ms = %u ticks", RTC::msToTicks(1000));
+//		LOGe("ADC: %u %u", _sampleNum, value);
+		_buffer->push(value);
+//		_buffer->push(diff);
+//		_buffer->push(_sampleNum++);
+		_lastSampleTime = time;
+//		_sampleNum = 0;
+	}
+
+	config((_lastPinNum+1) % _numPins);
 }
 
 void ADC::tick() {

@@ -124,12 +124,20 @@ void PowerService::tick() {
 	}
 #endif
 
-//	if (!_adcInitialized) {
-//		//! Init only when you sample, so that the the pin is only configured as AIN after the big spike at startup.
-//		ADC::getInstance().init(PIN_AIN_ADC);
-//		sampleCurrentInit();
-//		_adcInitialized = true;
-//	}
+	if (!_adcInitialized) {
+
+		//! Init only when you sample, so that the the pin is only configured as AIN after the big spike at startup.
+//		uint8_t pins[] = {PIN_AIN_CURRENT, PIN_AIN_VOLTAGE};
+//		ADC::getInstance().init(pins, 2);
+		uint8_t pins[] = {PIN_AIN_VOLTAGE};
+		ADC::getInstance().init(pins, 1);
+		ADC::getInstance().start();
+		_adcInitialized = true;
+		Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(10), this);
+	}
+	else {
+		LOGd("buffer size=%u", ADC::getInstance().getBuffer()->size());
+	}
 
 //	if (_samplingType && _currentCurve->isFull()) {
 //		sampleCurrentDone(_samplingType);
@@ -266,22 +274,28 @@ void PowerService::addCurrentCurveCharacteristic() {
 	addCharacteristic(_currentCurveCharacteristic);
 	_currentCurveCharacteristic->setUUID(UUID(getUUID(), CURRENT_CURVE_UUID));
 	_currentCurveCharacteristic->setName("Current Curve");
-	_currentCurveCharacteristic->setWritable(false);
+//	_currentCurveCharacteristic->setWritable(false);
 	_currentCurveCharacteristic->setNotifies(true);
 
-	_powerCurve = new PowerCurve<uint16_t>();
+
+
+//	_powerCurve = new PowerCurve<uint16_t>();
 //	MasterBuffer& mb = MasterBuffer::getInstance();
 //	uint8_t *buffer = NULL;
 //	uint16_t size = 0;
 //	mb.getBuffer(buffer, size);
-	uint8_t *buffer = _sampleBuffer;
-	uint16_t size = sizeof(_sampleBuffer);
-	LOGd("Assign buffer of size %i to current curve", size);
-	_powerCurve->assign(buffer, size);
+//	uint8_t *buffer = _sampleBuffer;
+//	uint16_t size = sizeof(_sampleBuffer);
+//	LOGd("Assign buffer of size %i to current curve", size);
+//	_powerCurve->assign(buffer, size);
 
-	_currentCurveCharacteristic->setValue(buffer);
-	_currentCurveCharacteristic->setMaxLength(size);
-	_currentCurveCharacteristic->setDataLength(size);
+//	_currentCurveCharacteristic->setValue(buffer);
+//	_currentCurveCharacteristic->setMaxLength(size);
+//	_currentCurveCharacteristic->setDataLength(size);
+
+	_currentCurveCharacteristic->setValue((uint8_t*)(&_powerNotification));
+	_currentCurveCharacteristic->setMaxLength(sizeof(_powerNotification));
+	_currentCurveCharacteristic->setDataLength(sizeof(_powerNotification));
 }
 
 void PowerService::addPowerConsumptionCharacteristic() {
@@ -376,60 +390,73 @@ void PowerService::stopSampling() {
 
 void PowerService::sampleCurrent() {
 
-	if (!_sampling) {
-		return;
-	}
-	if (first) {
+//	if (!_sampling) {
+//		return;
+//	}
+//	if (first) {
+//
+//		// Start storing the samples
+//		_voltagePin = false;
+//		_powerCurve->clear();
+//		ADC::getInstance().setPowerCurve(_powerCurve);
+//
+//		ADC::getInstance().init(PIN_AIN_CURRENT);
+//		ADC::getInstance().start();
+//
+//		start = RTC::getCount();
+//
+//		first = false;
+//
+//	} else if (_powerCurve->isFull()) {
+//
+//		LOGw("sampling duration: %u", RTC::ticksToMs(RTC::difference(RTC::getCount(), start)));
+//
+//		uint32_t sampleDone = RTC::getCount();
+//
+//		sampleCurrentDone();
+//
+//		LOGw("sampling done duration: %u", RTC::ticksToMs(RTC::difference(RTC::getCount(), sampleDone)));
+//
+//		if (_sampling) {
+//			int32_t pause = MS_TO_TICKS(_samplingInterval) - RTC::difference(RTC::getCount(), start);
+//			pause = pause < 5 ? 5 : pause;
+//			LOGw("pause: %u", RTC::ticksToMs(pause));
+//			Timer::getInstance().start(_staticSamplingTimer, pause, this);
+//			first = true;
+//		}
+//		return;
+//	} else {
+//		if (NRF_ADC->EVENTS_END) {
+//			if (_voltagePin) {
+//				PC_ERR_CODE res = _powerCurve->addVoltage(NRF_ADC->RESULT, RTC::getCount());
+//	//			LOGd("%i %i voltage: %i", res, _powerCurve->length(), NRF_ADC->RESULT);
+//				ADC::getInstance().config(PIN_AIN_CURRENT);
+//			}
+//			else {
+//				PC_ERR_CODE res = _powerCurve->addCurrent(NRF_ADC->RESULT, RTC::getCount());
+//	//			LOGd("%i %i current: %i", res, _powerCurve->length(), NRF_ADC->RESULT);
+//				ADC::getInstance().config(PIN_AIN_VOLTAGE);
+//			}
+//			_voltagePin = !_voltagePin;
+//			ADC::getInstance().start();
+//		}
+//	}
 
-		// Start storing the samples
-		_voltagePin = false;
-		_powerCurve->clear();
-		ADC::getInstance().setPowerCurve(_powerCurve);
-
-		ADC::getInstance().init(PIN_AIN_CURRENT);
-		ADC::getInstance().start();
-
-		start = RTC::getCount();
-
-		first = false;
-
-	} else if (_powerCurve->isFull()) {
-
-		LOGw("sampling duration: %u", RTC::ticksToMs(RTC::difference(RTC::getCount(), start)));
-
-		uint32_t sampleDone = RTC::getCount();
-
-		sampleCurrentDone();
-
-		LOGw("sampling done duration: %u", RTC::ticksToMs(RTC::difference(RTC::getCount(), sampleDone)));
-
-		if (_sampling) {
-			int32_t pause = MS_TO_TICKS(_samplingInterval) - RTC::difference(RTC::getCount(), start);
-			pause = pause < 5 ? 5 : pause;
-			LOGw("pause: %u", RTC::ticksToMs(pause));
-			Timer::getInstance().start(_staticSamplingTimer, pause, this);
-			first = true;
+	CircularBuffer<uint16_t>* buffer = ADC::getInstance().getBuffer();
+//	if (buffer != NULL) {
+//		LOGd("bufSize=%u", buffer->size());
+//	}
+	if (buffer != NULL && buffer->size() >= 9) {
+		_powerNotification.checksum = 0;
+		_powerNotification.length = 9;
+		for (int i=0; i<_powerNotification.length; i++) {
+			_powerNotification.values[i] = buffer->pop();
+			_powerNotification.checksum += _powerNotification.values[i];
 		}
-		return;
-	} else {
-		if (NRF_ADC->EVENTS_END) {
-			if (_voltagePin) {
-				PC_ERR_CODE res = _powerCurve->addVoltage(NRF_ADC->RESULT, RTC::getCount());
-	//			LOGd("%i %i voltage: %i", res, _powerCurve->length(), NRF_ADC->RESULT);
-				ADC::getInstance().config(PIN_AIN_CURRENT);
-			}
-			else {
-				PC_ERR_CODE res = _powerCurve->addCurrent(NRF_ADC->RESULT, RTC::getCount());
-	//			LOGd("%i %i current: %i", res, _powerCurve->length(), NRF_ADC->RESULT);
-				ADC::getInstance().config(PIN_AIN_VOLTAGE);
-			}
-			_voltagePin = !_voltagePin;
-			ADC::getInstance().start();
-		}
+		_currentCurveCharacteristic->notify();
 	}
-
-	Timer::getInstance().start(_staticSamplingTimer, 5, this);
-
+	Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(10*4), this);
+//	Timer::getInstance().start(_staticSamplingTimer, 5, this);
 }
 
 //void PowerService::sampleCurrent() {

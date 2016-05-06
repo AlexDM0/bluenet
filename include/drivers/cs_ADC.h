@@ -11,6 +11,7 @@
 //#include "cs_RTC.h"
 //#include "structs/cs_CurrentCurve.h"
 #include "structs/cs_PowerCurve.h"
+#include "structs/buffer/cs_CircularBuffer.h"
 
 //#include "common/cs_Types.h"
 
@@ -35,7 +36,7 @@ public:
 	 * The init function must called once before operating the AD converter.
 	 * Call it after you start the SoftDevice.
 	 */
-	uint32_t init(uint8_t pin);
+	uint32_t init(uint8_t pins[], uint8_t size);
 
 	/** Start the ADC sampling
 	 *
@@ -53,6 +54,9 @@ public:
 //	void setCurrentCurve(CurrentCurve<uint16_t>* curve) { _currentCurve = curve; }
 	void setPowerCurve(PowerCurve<uint16_t>* curve) { _powerCurve = curve; }
 
+	void setBuffer(CircularBuffer<uint16_t>* buffer){ _buffer = buffer; }
+
+	CircularBuffer<uint16_t>* getBuffer() { return _buffer; }
 
 //	/** Set threshold to start writing samples to buffer.
 //	 *
@@ -70,14 +74,19 @@ private:
 	/** Constructor
 	 */
 //	ADC(): _currentCurve(NULL) {}
-	ADC(): _powerCurve(NULL) {}
+	ADC(): _powerCurve(NULL), _buffer(NULL) {}
 
 	//! This class is singleton, deny implementation
 	ADC(ADC const&);
 	//! This class is singleton, deny implementation
 	void operator=(ADC const &);
 
-//	uint16_t _sampleNum;
+	uint8_t _pins[MAX_ADC_PINS];
+	uint8_t _numPins;
+	uint8_t _lastPinNum;
+	uint32_t _lastSampleTime;
+	uint16_t _sampleNum;
+	CircularBuffer<uint16_t>* _buffer;
 //	uint16_t _lastResult;
 //	uint8_t _threshold;
 //	CurrentCurve<uint16_t>* _currentCurve;

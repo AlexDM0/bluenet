@@ -177,7 +177,8 @@ uint16_t Sensors::sampleSensor() {
 	_currentCurve.clear();
 //	ADC::getInstance().setCurrentCurve(&_currentCurve);
 
-	ADC::getInstance().init(PIN_AIN_SENSOR);
+	uint8_t pins[1] = {PIN_AIN_SENSOR};
+	ADC::getInstance().init(pins, 1);
 	ADC::getInstance().start();
 	while (!_currentCurve.isFull()) {
 		while(!NRF_ADC->EVENTS_END) {}
