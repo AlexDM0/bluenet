@@ -136,7 +136,9 @@ void PowerService::tick() {
 		Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(10), this);
 	}
 	else {
-		LOGd("buffer size=%u", ADC::getInstance().getBuffer()->size());
+		if (ADC::getInstance().getBuffer()->size() > 2*9) {
+			LOGd("buffer size=%u", ADC::getInstance().getBuffer()->size());
+		}
 	}
 
 //	if (_samplingType && _currentCurve->isFull()) {
@@ -447,15 +449,32 @@ void PowerService::sampleCurrent() {
 //		LOGd("bufSize=%u", buffer->size());
 //	}
 	if (buffer != NULL && buffer->size() >= 9) {
+
+//		uint8_t count;
+//		if (sd_ble_tx_buffer_count_get(&count) != NRF_SUCCESS) {
+//			return;
+//		}
+//		if (count == 0) {
+//			return;
+//		}
+
+		if (_currentCurveCharacteristic->isNotificationPending()) {
+			return;
+		}
+
 		_powerNotification.checksum = 0;
 		_powerNotification.length = 9;
 		for (int i=0; i<_powerNotification.length; i++) {
 			_powerNotification.values[i] = buffer->pop();
 			_powerNotification.checksum += _powerNotification.values[i];
 		}
-		_currentCurveCharacteristic->notify();
+		uint32_t err_code = _currentCurveCharacteristic->notify();
+		if (err_code != NRF_SUCCESS) {
+//			LOGd("notify_err=%u count=%u", err_code, count);
+			LOGd("notify_err=%u", err_code);
+		}
 	}
-	Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(10*4), this);
+	Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(9*9), this);
 //	Timer::getInstance().start(_staticSamplingTimer, 5, this);
 }
 

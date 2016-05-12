@@ -493,6 +493,8 @@ public:
 		}
 	}
 
+	bool isNotificationPending() { return _notificationPending; }
+
 protected:
 
 	void written(uint16_t len) {

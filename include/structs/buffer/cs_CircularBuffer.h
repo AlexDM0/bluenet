@@ -175,13 +175,13 @@ private:
 	uint16_t _capacity;
 
 	/** Index of the head (next element to be removed) */
-	uint16_t _head;
+	volatile uint16_t _head;
 
 	/** Index of the tail (where the next element will be inserted) */
-	uint16_t _tail;
+	volatile uint16_t _tail;
 
 	/** Number of elements stored in the buffer */
-	uint16_t _contentsSize;
+	volatile uint16_t _contentsSize;
 
 	/** Increases the tail.
 	 *
