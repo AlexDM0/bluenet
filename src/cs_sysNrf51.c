@@ -27,6 +27,9 @@ extern int main (void);
 void ADC_IRQHandler(void);
 void ResetHandler(void);
 
+//! Currently used for ADC
+//void TIMER1_IRQHandler(void);
+
 //! currently used for PWM
 void TIMER2_IRQHandler(void);
 

@@ -59,6 +59,33 @@ uint32_t ADC::init(uint8_t pins[], uint8_t size) {
 
 	assert(_buffer != NULL, "buffer not initialized");
 
+
+	//! Configure timer
+	NRF_TIMER1->TASKS_CLEAR = 1;
+//	NRF_TIMER1->BITMODE =    (TIMER_BITMODE_BITMODE_32Bit << TIMER_BITMODE_BITMODE_Pos); //! Counter is 32bit
+	NRF_TIMER1->BITMODE =    (TIMER_BITMODE_BITMODE_16Bit << TIMER_BITMODE_BITMODE_Pos); //! Counter is 16bit
+	NRF_TIMER1->MODE =       (TIMER_MODE_MODE_Timer << TIMER_MODE_MODE_Pos);
+	NRF_TIMER1->PRESCALER =  (4 << TIMER_PRESCALER_PRESCALER_Pos); //! 16MHz / 2^4 = 1Mhz, 1us period
+
+	//! Configure timer events
+	NRF_TIMER1->CC[0] = 10000; // 10ms compare value
+
+	//! Shortcut clear timer at compare0 event
+	NRF_TIMER1->SHORTS = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
+
+	//! Configure ADC task on PPI Channel 7
+//	NRF_PPI->CH[7].EEP = (uint32_t)&NRF_TIMER1->EVENTS_COMPARE[0];
+//	NRF_PPI->CH[7].TEP = (uint32_t)&NRF_ADC->TASKS_START;
+	sd_ppi_channel_assign(7, &NRF_TIMER1->EVENTS_COMPARE[0], &NRF_ADC->TASKS_START);
+
+//	NRF_PPI->CHENSET = (1UL << 7);
+	sd_ppi_channel_enable_set(1UL << 7);
+
+//	NVIC_SetPriority(PWM_IRQn, NRF_APP_PRIORITY_LOW);
+//	NVIC_EnableIRQ(PWM_IRQn);
+//	sd_nvic_SetPriority(TIMER1_IRQHandler, NRF_APP_PRIORITY_LOW);
+//	sd_nvic_EnableIRQ(TIMER1_IRQHandler);
+
 	_lastSampleTime = 0;
 	_sampleNum = 0;
 	return 0;
@@ -90,12 +117,14 @@ uint32_t ADC::config(uint8_t pinNum) {
 }
 
 void ADC::stop() {
+	NRF_TIMER1->TASKS_STOP = 1;
 	NRF_ADC->TASKS_STOP = 1;
 }
 
 void ADC::start() {
 	NRF_ADC->EVENTS_END  = 0;
-	NRF_ADC->TASKS_START = 1;
+//	NRF_ADC->TASKS_START = 1;
+	NRF_TIMER1->TASKS_START = 1;
 }
 
 void ADC::update(uint32_t value) {
@@ -114,7 +143,7 @@ void ADC::update(uint32_t value) {
 //	if (_sampleNum >= 10000) {
 //	if (RTC::ticksToMs(RTC::difference(time, _lastSampleTime)) >= 1000) {
 	uint32_t diff = RTC::difference(time, _lastSampleTime);
-	if (diff >= RTC::msToTicks(10)) {
+//	if (diff >= RTC::msToTicks(10)) {
 //		LOGi("1000ms = %u ticks", RTC::msToTicks(1000));
 //		LOGe("ADC: %u %u", _sampleNum, value);
 		_buffer->push(value);
@@ -122,7 +151,7 @@ void ADC::update(uint32_t value) {
 //		_buffer->push(_sampleNum++);
 		_lastSampleTime = time;
 //		_sampleNum = 0;
-	}
+//	}
 
 	config((_lastPinNum+1) % _numPins);
 }
@@ -153,8 +182,8 @@ extern "C" void ADC_IRQHandler(void) {
 	//! Use the STOP task to save current. Workaround for PAN_028 rev1.5 anomaly 1.
 	//NRF_ADC->TASKS_STOP = 1;
 
-	//! next sample
-	NRF_ADC->TASKS_START = 1;
+//	//! next sample
+//	NRF_ADC->TASKS_START = 1;
 
 }
 
