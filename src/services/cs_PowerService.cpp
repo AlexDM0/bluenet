@@ -127,10 +127,10 @@ void PowerService::tick() {
 	if (!_adcInitialized) {
 
 		//! Init only when you sample, so that the the pin is only configured as AIN after the big spike at startup.
-//		uint8_t pins[] = {PIN_AIN_CURRENT, PIN_AIN_VOLTAGE};
-//		ADC::getInstance().init(pins, 2);
-		uint8_t pins[] = {PIN_AIN_VOLTAGE};
-		ADC::getInstance().init(pins, 1);
+		uint8_t pins[] = {PIN_AIN_CURRENT, PIN_AIN_VOLTAGE};
+		ADC::getInstance().init(pins, 2);
+//		uint8_t pins[] = {PIN_AIN_VOLTAGE};
+//		ADC::getInstance().init(pins, 1);
 		ADC::getInstance().start();
 		_adcInitialized = true;
 		Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(10), this);
@@ -448,7 +448,7 @@ void PowerService::sampleCurrent() {
 //	if (buffer != NULL) {
 //		LOGd("bufSize=%u", buffer->size());
 //	}
-	if (buffer != NULL && buffer->size() >= 9) {
+	if (buffer != NULL && buffer->size() >= 2*9) {
 
 //		uint8_t count;
 //		if (sd_ble_tx_buffer_count_get(&count) != NRF_SUCCESS) {
@@ -465,7 +465,11 @@ void PowerService::sampleCurrent() {
 		_powerNotification.checksum = 0;
 		_powerNotification.length = 9;
 		for (int i=0; i<_powerNotification.length; i++) {
-			_powerNotification.values[i] = buffer->pop();
+			uint16_t current = buffer->pop();
+			uint16_t voltage = buffer->pop();
+			_powerNotification.values[i] = current*voltage;
+//			_powerNotification.values[i] = current;
+//			_powerNotification.values[i] = buffer->pop();
 			_powerNotification.checksum += _powerNotification.values[i];
 		}
 		uint32_t err_code = _currentCurveCharacteristic->notify();
@@ -474,7 +478,7 @@ void PowerService::sampleCurrent() {
 			LOGd("notify_err=%u", err_code);
 		}
 	}
-	Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(9*9), this);
+	Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(5*9), this);
 //	Timer::getInstance().start(_staticSamplingTimer, 5, this);
 }
 

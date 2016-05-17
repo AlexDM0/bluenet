@@ -62,13 +62,19 @@ uint32_t ADC::init(uint8_t pins[], uint8_t size) {
 
 	//! Configure timer
 	NRF_TIMER1->TASKS_CLEAR = 1;
-//	NRF_TIMER1->BITMODE =    (TIMER_BITMODE_BITMODE_32Bit << TIMER_BITMODE_BITMODE_Pos); //! Counter is 32bit
 	NRF_TIMER1->BITMODE =    (TIMER_BITMODE_BITMODE_16Bit << TIMER_BITMODE_BITMODE_Pos); //! Counter is 16bit
 	NRF_TIMER1->MODE =       (TIMER_MODE_MODE_Timer << TIMER_MODE_MODE_Pos);
 	NRF_TIMER1->PRESCALER =  (4 << TIMER_PRESCALER_PRESCALER_Pos); //! 16MHz / 2^4 = 1Mhz, 1us period
 
+//	NRF_TIMER1->TASKS_CLEAR = 1;
+//	NRF_TIMER1->BITMODE =    (TIMER_BITMODE_BITMODE_32Bit << TIMER_BITMODE_BITMODE_Pos); //! Counter is bit
+//	NRF_TIMER1->MODE =       (TIMER_MODE_MODE_Counter << TIMER_MODE_MODE_Pos);
+
 	//! Configure timer events
 	NRF_TIMER1->CC[0] = 10000; // 10ms compare value
+//	NRF_TIMER1->CC[0] = 20000; // 20ms compare value
+//	NRF_TIMER1->CC[0] = 160000; // 10ms compare value
+//	NRF_TIMER1->CC[1] = 1;
 
 	//! Shortcut clear timer at compare0 event
 	NRF_TIMER1->SHORTS = (TIMER_SHORTS_COMPARE0_CLEAR_Enabled << TIMER_SHORTS_COMPARE0_CLEAR_Pos);
@@ -77,9 +83,11 @@ uint32_t ADC::init(uint8_t pins[], uint8_t size) {
 //	NRF_PPI->CH[7].EEP = (uint32_t)&NRF_TIMER1->EVENTS_COMPARE[0];
 //	NRF_PPI->CH[7].TEP = (uint32_t)&NRF_ADC->TASKS_START;
 	sd_ppi_channel_assign(7, &NRF_TIMER1->EVENTS_COMPARE[0], &NRF_ADC->TASKS_START);
-
-//	NRF_PPI->CHENSET = (1UL << 7);
+	//	NRF_PPI->CHENSET = (1UL << 7);
 	sd_ppi_channel_enable_set(1UL << 7);
+
+//	sd_ppi_channel_assign(6, &NRF_TIMER1->EVENTS_COMPARE[1], &NRF_TIMER1->TASKS_COUNT);
+//	sd_ppi_channel_enable_set(1UL << 6);
 
 //	NVIC_SetPriority(PWM_IRQn, NRF_APP_PRIORITY_LOW);
 //	NVIC_EnableIRQ(PWM_IRQn);
@@ -143,17 +151,25 @@ void ADC::update(uint32_t value) {
 //	if (_sampleNum >= 10000) {
 //	if (RTC::ticksToMs(RTC::difference(time, _lastSampleTime)) >= 1000) {
 	uint32_t diff = RTC::difference(time, _lastSampleTime);
+//	NRF_TIMER1->TASKS_CAPTURE[1] = 1;
+//	uint16_t timerVal = NRF_TIMER1->CC[1];
+//	NRF_TIMER1->TASKS_CLEAR = 1;
 //	if (diff >= RTC::msToTicks(10)) {
 //		LOGi("1000ms = %u ticks", RTC::msToTicks(1000));
 //		LOGe("ADC: %u %u", _sampleNum, value);
 		_buffer->push(value);
 //		_buffer->push(diff);
 //		_buffer->push(_sampleNum++);
+//		_buffer->push(timerVal);
 		_lastSampleTime = time;
 //		_sampleNum = 0;
 //	}
 
 	config((_lastPinNum+1) % _numPins);
+	if (_lastPinNum > 0) {
+		//! next sample
+		NRF_ADC->TASKS_START = 1;
+	}
 }
 
 void ADC::tick() {
