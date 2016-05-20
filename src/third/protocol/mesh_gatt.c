@@ -528,7 +528,7 @@ void printArray(uint8_t* arr, uint16_t len) {
 
 void value_set_handler(void* p_event_data, uint16_t event_size) {
 
-	LOGi("value_set_handler");
+//	LOGi("value_set_handler");
 
 //	waiting_notification_t* notification = (waiting_notification_t*) p_event_data;
 	waiting_notification_t* notification = nb_peek();
@@ -537,10 +537,10 @@ void value_set_handler(void* p_event_data, uint16_t event_size) {
 
 	uint32_t err_code = send_notification(notification);
 	if (err_code == BLE_ERROR_NO_TX_BUFFERS) {
-		LOGi("adding pending notification");
+//		LOGi("adding pending notification");
 		notifactionsPending = true;
 	} else {
-		LOGi("popping notification");
+//		LOGi("popping notification");
 		nb_pop();
 	}
 
@@ -576,13 +576,13 @@ uint32_t mesh_gatt_value_set(rbc_mesh_value_handle_t handle, uint8_t* data,
 
 			if (!notifactionsPending) {
 
-				LOGi("put into scheduler");
+//				LOGi("put into scheduler");
 				app_sched_event_put(NULL, 0, value_set_handler);
 
 //				printArray(notification, sizeof(waiting_notification_t));
 			} else {
 
-				LOGi("notification pending already");
+//				LOGi("notification pending already");
 				return BLE_ERROR_NO_TX_BUFFERS;
 
 			}
@@ -598,15 +598,15 @@ void resume_notifications() {
 
 	if (send_notification(notification) == NRF_SUCCESS) {
 
-		LOGi("notification done");
+//		LOGi("notification done");
 
 		nb_pop();
 
 		if (nb_empty()) {
 			notifactionsPending = false;
-			LOGi("no more notifications pending");
+//			LOGi("no more notifications pending");
 		} else {
-			LOGi("continue with next pending notification");
+//			LOGi("continue with next pending notification");
 			resume_notifications();
 		}
 

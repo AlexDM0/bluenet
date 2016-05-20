@@ -100,7 +100,7 @@ void CMesh::handleMeshMessage(rbc_mesh_event_t* evt)
 	switch (evt->event_type)
 	{
 	case RBC_MESH_EVENT_TYPE_CONFLICTING_VAL:
-		LOGd("ch: %d, conflicting value", evt->value_handle);
+//		LOGd("ch: %d, conflicting value", evt->value_handle);
 		break;
 	case RBC_MESH_EVENT_TYPE_NEW_VAL:
 		LOGd("ch: %d, new value", evt->value_handle);

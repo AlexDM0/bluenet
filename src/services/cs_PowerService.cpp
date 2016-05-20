@@ -26,6 +26,10 @@
 #include <protocol/cs_MeshControl.h>
 #include <cfg/cs_Settings.h>
 
+extern "C" {
+#include "third/protocol/notification_buffer.h"
+}
+
 // change to #def to enable output of sample current values
 #undef PRINT_SAMPLE_CURRENT
 
@@ -133,12 +137,14 @@ void PowerService::tick() {
 //		ADC::getInstance().init(pins, 1);
 		ADC::getInstance().start();
 		_adcInitialized = true;
+		_powerSamplesCount = 0;
+		_notificationCounter = 0;
 		Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(10), this);
 	}
 	else {
-		if (ADC::getInstance().getBuffer()->size() > 2*9) {
-			LOGd("buffer size=%u", ADC::getInstance().getBuffer()->size());
-		}
+//		if (ADC::getInstance().getBuffer()->size() > 2*9) {
+//			LOGd("buffer size=%u", ADC::getInstance().getBuffer()->size());
+//		}
 	}
 
 //	if (_samplingType && _currentCurve->isFull()) {
@@ -448,7 +454,49 @@ void PowerService::sampleCurrent() {
 //	if (buffer != NULL) {
 //		LOGd("bufSize=%u", buffer->size());
 //	}
-	if (buffer != NULL && buffer->size() >= 2*9) {
+
+	if (buffer != NULL && buffer->size() >= 2) {
+		uint16_t numSamples = buffer->size()/2;
+		if (numSamples > POWER_SAMPLE_MESH_MAX_NUM - _powerSamplesCount) {
+			numSamples = POWER_SAMPLE_MESH_MAX_NUM - _powerSamplesCount;
+		}
+		uint16_t power;
+		int32_t diff;
+		if (_powerSamplesCount == 0) {
+			power = buffer->pop() * buffer->pop(); //! I * V
+//			_powerSamplesMeshMsg.firstSample = power;
+			_powerSamplesMeshMsg.firstSample = _notificationCounter++;
+			_lastPowerSample = power;
+			numSamples--;
+			_powerSamplesCount++;
+		}
+		for (int i=0; i<numSamples; i++) {
+			power = buffer->pop() * buffer->pop(); //! I * V
+			diff = _lastPowerSample - power;
+			if (diff > 127 || diff < -127) {
+//				LOGw("diff too large! %u - %u = %i", _lastPowerSample, power, diff);
+//				LOGd("bufSize=%u, i=%u", buffer->size(), i);
+//				_powerSamplesCount = 0;
+//				Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(5*9), this);
+//				return; // TODO: is return the best thing to do?
+			}
+//			_powerSamplesMeshMsg.sampleDiff[_powerSamplesCount-1] = diff;
+			_powerSamplesMeshMsg.sampleDiff[_powerSamplesCount-1] = _powerSamplesCount-1;
+			_lastPowerSample = power;
+		}
+		_powerSamplesCount += numSamples;
+
+		if (_powerSamplesCount >= POWER_SAMPLE_MESH_MAX_NUM) {
+			LOGd("nb_size=%u", nb_size());
+			if (!nb_full()) {
+				MeshControl::getInstance().sendPowerSamplesMessage(&_powerSamplesMeshMsg);
+				_powerSamplesCount = 0;
+			}
+		}
+
+//		LOGd("bufSize=%u, sampleCount=%u, numSamples=%u", buffer->size(), _powerSamplesCount, numSamples);
+		Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(5*9), this);
+		return;
 
 //		uint8_t count;
 //		if (sd_ble_tx_buffer_count_get(&count) != NRF_SUCCESS) {

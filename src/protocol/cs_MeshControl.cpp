@@ -351,6 +351,15 @@ void MeshControl::sendScanMessage(peripheral_device_t* p_list, uint8_t size) {
 
 }
 
+void MeshControl::sendPowerSamplesMessage(power_samples_mesh_message_t* samples) {
+//	LOGd("sendPowerSamplesMessage");
+	hub_mesh_message_t message;
+	memcpy(&message.header.sourceAddress, &_myAddr.addr, BLE_GAP_ADDR_LEN);
+	message.header.messageType = POWER_SAMPLES_MESSAGE;
+	memcpy(&message.powerSamplesMsg, samples, sizeof(power_samples_mesh_message_t));
+	CMesh::getInstance().send(HUB_CHANNEL, &message, sizeof(message));
+}
+
 void MeshControl::reset() {
 //	LOGw("reset due to mesh timeout");
 //	//! copy to make sure this is nothing more than one value

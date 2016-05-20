@@ -132,6 +132,7 @@ void Crownstone::configStack() {
 #endif
 
 	_stack->setTxPowerLevel(TX_POWER);
+//	_stack->setMinConnectionInterval(8);
 	_stack->setMinConnectionInterval(16);
 	_stack->setMaxConnectionInterval(32);
 	_stack->setConnectionSupervisionTimeout(400);

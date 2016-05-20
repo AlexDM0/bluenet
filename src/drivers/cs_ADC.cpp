@@ -72,7 +72,7 @@ uint32_t ADC::init(uint8_t pins[], uint8_t size) {
 
 	//! Configure timer events
 	NRF_TIMER1->CC[0] = 10000; // 10ms compare value
-//	NRF_TIMER1->CC[0] = 20000; // 20ms compare value
+//	NRF_TIMER1->CC[0] = 20000;
 //	NRF_TIMER1->CC[0] = 160000; // 10ms compare value
 //	NRF_TIMER1->CC[1] = 1;
 

@@ -21,6 +21,7 @@
 #include "drivers/cs_LPComp.h"
 //#include "drivers/cs_RTC.h"
 #include "structs/cs_PowerNotification.h"
+#include "protocol/cs_MeshMessageTypes.h"
 
 #define POWER_SERVICE_UPDATE_FREQUENCY 10 //! hz
 
@@ -127,6 +128,10 @@ private:
 	app_timer_id_t _staticSamplingTimer;
 
 	power_notification_t _powerNotification;
+	power_samples_mesh_message_t _powerSamplesMeshMsg;
+	uint16_t _powerSamplesCount;
+	uint16_t _lastPowerSample;
+	uint16_t _notificationCounter;
 
 	bool _adcInitialized;
 	bool _currentLimitInitialized;
