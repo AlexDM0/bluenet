@@ -117,11 +117,14 @@ struct __attribute__((__packed__)) scan_mesh_message_t {
 };
 
 //#define POWER_SAMPLE_MESH_MAX_NUM 56
-#define POWER_SAMPLE_MESH_MAX_NUM 84
-struct __attribute__((__packed__)) power_samples_mesh_message_t {
+//#define POWER_SAMPLE_MESH_MAX_NUM 85
+#define POWER_SAMPLE_MESH_MAX_NUM 43
+struct __attribute__((__packed__)) power_samples_mesh_message_t { //! 91 bytes in total
 	uint32_t timestamp;
-	uint16_t firstSample;
-	int8_t sampleDiff[POWER_SAMPLE_MESH_MAX_NUM];
+//	uint16_t firstSample;
+//	int8_t sampleDiff[POWER_SAMPLE_MESH_MAX_NUM-1];
+	uint16_t samples[POWER_SAMPLE_MESH_MAX_NUM];
+	uint8_t reserved;
 //	struct __attribute__((__packed__)) {
 //		int8_t dt1 : 4;
 //		int8_t dt2 : 4;

@@ -27,7 +27,8 @@ extern "C" {
 //! values are updated MESH_UPDATE_FREQUENCY times per second
 #define MESH_UPDATE_FREQUENCY 10
 //! number of channels used in the mesh
-#define MESH_NUM_OF_CHANNELS 2
+//#define MESH_NUM_OF_CHANNELS 2
+#define MESH_NUM_OF_CHANNELS 20
 //! time given for boot up (every first message received on each channel
 //! will be ignored during boot up)
 #define BOOT_TIME 1000 // 1 second
@@ -35,7 +36,9 @@ extern "C" {
 #define MESH_ACCESS_ADDR 0xA541A68E
 //#define MESH_ACCESS_ADDR 0xA641A69E
 #define MESH_INTERVAL_MIN_MS 100
+//#define MESH_CHANNEL 38 //! default
 #define MESH_CHANNEL 37
+//#define MESH_CHANNEL 39 //! usb_mesh
 #define MESH_CLOCK_SOURCE (CLOCK_SOURCE)
 
 

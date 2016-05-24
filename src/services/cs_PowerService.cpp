@@ -461,33 +461,67 @@ void PowerService::sampleCurrent() {
 			numSamples = POWER_SAMPLE_MESH_MAX_NUM - _powerSamplesCount;
 		}
 		uint16_t power;
+		uint16_t current;
+		uint16_t voltage;
 		int32_t diff;
 		if (_powerSamplesCount == 0) {
-			power = buffer->pop() * buffer->pop(); //! I * V
+			current = buffer->pop();
+			voltage = buffer->pop();
+////			power = buffer->pop() * buffer->pop(); //! I * V
+			power = current;
+//			_log(DEBUG, " %u %u", current, voltage);
 //			_powerSamplesMeshMsg.firstSample = power;
-			_powerSamplesMeshMsg.firstSample = _notificationCounter++;
+////			_powerSamplesMeshMsg.firstSample = _notificationCounter++;
+			_powerSamplesMeshMsg.samples[0] = _notificationCounter++;
 			_lastPowerSample = power;
 			numSamples--;
 			_powerSamplesCount++;
 		}
 		for (int i=0; i<numSamples; i++) {
-			power = buffer->pop() * buffer->pop(); //! I * V
+//			power = buffer->pop() * buffer->pop(); //! I * V
+			current = buffer->pop();
+			voltage = buffer->pop();
+			power = current;
 			diff = _lastPowerSample - power;
-			if (diff > 127 || diff < -127) {
+//			_log(DEBUG, " %u %u", current, voltage);
+//			if (diff > 127 || diff < -127) {
 //				LOGw("diff too large! %u - %u = %i", _lastPowerSample, power, diff);
 //				LOGd("bufSize=%u, i=%u", buffer->size(), i);
 //				_powerSamplesCount = 0;
 //				Timer::getInstance().start(_staticSamplingTimer, MS_TO_TICKS(5*9), this);
 //				return; // TODO: is return the best thing to do?
-			}
+//			}
 //			_powerSamplesMeshMsg.sampleDiff[_powerSamplesCount-1] = diff;
-			_powerSamplesMeshMsg.sampleDiff[_powerSamplesCount-1] = _powerSamplesCount-1;
+//			_powerSamplesMeshMsg.sampleDiff[_powerSamplesCount-1] = _powerSamplesCount-1;
+			_powerSamplesMeshMsg.samples[_powerSamplesCount] = power;
 			_lastPowerSample = power;
+			_powerSamplesCount++;
+//			if (_powerSamplesCount % 10 == 0) {
+//				_log(DEBUG, "\r\n");
+//			}
 		}
-		_powerSamplesCount += numSamples;
+//		LOGd("_powerSamplesCount=%u numSamples=%u", _powerSamplesCount, numSamples);
+//		_powerSamplesCount += numSamples;
 
 		if (_powerSamplesCount >= POWER_SAMPLE_MESH_MAX_NUM) {
 			LOGd("nb_size=%u", nb_size());
+//			_log(DEBUG, "power samples: %u", _powerSamplesMeshMsg.firstSample);
+//			for (int i=0; i<POWER_SAMPLE_MESH_MAX_NUM-1; i++) {
+//				_log(DEBUG, " %i", _powerSamplesMeshMsg.sampleDiff[i]);
+//				if (i % 20 == 0) {
+//					_log(DEBUG, "\r\n");
+//				}
+//			}
+//			_log(DEBUG, "\r\n");
+//			_log(DEBUG, "power samples: ");
+//			for (int i=0; i<POWER_SAMPLE_MESH_MAX_NUM; i++) {
+//				_log(DEBUG, " %i", _powerSamplesMeshMsg.samples[i]);
+//				if (i % 20 == 0) {
+//					_log(DEBUG, "\r\n");
+//				}
+//			}
+//			_log(DEBUG, "\r\n");
+
 			if (!nb_full()) {
 				MeshControl::getInstance().sendPowerSamplesMessage(&_powerSamplesMeshMsg);
 				_powerSamplesCount = 0;
