@@ -35,7 +35,7 @@ uint32_t ADC::init(uint8_t pins[], uint8_t size) {
 	ADC::getInstance().setBuffer(buffer);
 
 	LOGd("Configure ADC on pin %u", _pins[0]);
-	err_code = config(_pins[0]);
+	err_code = config(0);
 	APP_ERROR_CHECK(err_code);
 
 	NRF_ADC->EVENTS_END  = 0;    //! Stop any running conversions.
@@ -166,7 +166,7 @@ void ADC::update(uint32_t value) {
 //	}
 
 	config((_lastPinNum+1) % _numPins);
-	if (_lastPinNum > 0) {
+	if (_lastPinNum >= _numPins) {
 		//! next sample
 		NRF_ADC->TASKS_START = 1;
 	}
