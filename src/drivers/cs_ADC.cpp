@@ -166,7 +166,7 @@ void ADC::update(uint32_t value) {
 //	}
 
 	config((_lastPinNum+1) % _numPins);
-	if (_lastPinNum >= _numPins) {
+	if (_lastPinNum < _numPins-1) {
 		//! next sample
 		NRF_ADC->TASKS_START = 1;
 	}
