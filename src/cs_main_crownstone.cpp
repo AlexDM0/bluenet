@@ -60,7 +60,6 @@
 
 using namespace BLEpp;
 
-
 /**
  * If UART is enabled this will be the message printed out over a serial connection. Connectors are expensive, so UART
  * is not available in the final product.
@@ -325,6 +324,11 @@ void Crownstone::setup() {
 #endif
 
 	});
+
+    //! try eddystone
+    _eddystone = new Eddystone();
+    _eddystone->advertising_init();
+
 	_stack->onDisconnect([&](uint16_t conn_handle) {
 		LOGi("onDisconnect...");
 		//NRF51_GPIO_OUTCLR = 1 << PIN_LED;
@@ -407,8 +411,10 @@ void Crownstone::startAdvertising() {
 #if IBEACON==1 || DEVICE_TYPE==DEVICE_DOBEACON
 	_stack->startIBeacon(_beacon, DEVICE_TYPE);
 #else
-	_stack->startAdvertising(DEVICE_TYPE);
+	//_stack->startAdvertising(DEVICE_TYPE);
 #endif
+    _eddystone->advertising_start();
+
 }
 
 void Crownstone::run() {
@@ -427,6 +433,7 @@ void Crownstone::run() {
 //	_powerService->startStaticSampling();
 #endif
 
+	LOGi("Enter infinite while loop");
 	while(1) {
 
 		app_sched_execute();

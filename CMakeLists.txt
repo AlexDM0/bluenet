@@ -131,6 +131,7 @@ ENDIF()
 
 # should be only when creating iBeacon
 LIST(APPEND FOLDER_SOURCE "${SOURCE_DIR}/ble/cs_iBeacon.cpp")
+LIST(APPEND FOLDER_SOURCE "${SOURCE_DIR}/ble/cs_Eddystone.cpp")
 
 IF(${CHAR_MESHING} STRGREATER "0")
 	LIST(APPEND FOLDER_SOURCE "${SOURCE_DIR}/protocol/cs_MeshControl.cpp")

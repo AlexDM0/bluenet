@@ -13,6 +13,7 @@
 #include <ble/cs_Stack.h>
 
 #include <ble/cs_iBeacon.h>
+#include <ble/cs_Eddystone.h>
 
 #include <services/cs_IndoorLocalisationService.h>
 #include <services/cs_GeneralService.h>
@@ -48,6 +49,7 @@ private:
 	ScheduleService* _scheduleService;
 	DeviceInformationService* _deviceInformationService;
 
+    Eddystone * _eddystone;
 	IBeacon* _beacon;
 	Sensors* _sensors;
 	Fridge* _fridge;
