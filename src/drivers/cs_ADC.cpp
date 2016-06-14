@@ -121,8 +121,8 @@ void ADC::setDoneCallback(adc_done_cb_t callback) {
 uint32_t ADC::config(uint8_t pinNum) {
 	NRF_ADC->CONFIG     =
 			(ADC_CONFIG_RES_10bit                            << ADC_CONFIG_RES_Pos)     |
-#if(HARDWARE_BOARD==CROWNSTONE)
-//#if(HARDWARE_BOARD==CROWNSTONE || HARDWARE_BOARD==CROWNSTONE4 || HARDWARE_BOARD==CROWNSTONE5)
+//#if(HARDWARE_BOARD==CROWNSTONE)
+#if(HARDWARE_BOARD==CROWNSTONE || HARDWARE_BOARD==CROWNSTONE4 || HARDWARE_BOARD==CROWNSTONE5)
 			(ADC_CONFIG_INPSEL_AnalogInputNoPrescaling       << ADC_CONFIG_INPSEL_Pos)  |
 #else
 			(ADC_CONFIG_INPSEL_AnalogInputOneThirdPrescaling << ADC_CONFIG_INPSEL_Pos)  |
